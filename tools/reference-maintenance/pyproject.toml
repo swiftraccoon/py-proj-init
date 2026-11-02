@@ -1,0 +1,51 @@
+[project]
+name = "python-project-reference-maintenance"
+version = "0.1.0"
+description = "Optional tooling for the Python project reference pack"
+requires-python = ">=3.11"
+dependencies = ["click>=8.3,<9", "rich>=14,<15"]
+
+[dependency-groups]
+dev = ["ruff>=0.17.3,<0.18", "mypy>=2.4.1,<3", "pyright>=1.1.0,<2"]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["ALL"]
+# Ruff formatting owns trailing commas. The Google docstring convention resolves
+# mutually exclusive style rules while retaining documentation checks.
+ignore = ["COM812"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+# The integration suite uses unittest assertions. Method names identify cases;
+# numeric expected values are local fixtures.
+"tests/*.py" = ["D102", "PLR2004", "PT009", "PT027"]
+
+[tool.mypy]
+files = ["reference.py", "check_docs.py", "reference_maintenance", "tests"]
+python_version = "3.11"
+strict = true
+warn_unreachable = true
+show_error_codes = true
+disallow_any_unimported = true
+disallow_any_explicit = true
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+
+[tool.pyright]
+include = [
+  "reference.py", "check_docs.py", "reference_maintenance", "tests",
+  "../../templates/cli_script.py",
+]
+pythonVersion = "3.11"
+typeCheckingMode = "strict"
+venvPath = "."
+venv = ".venv"
+reportUnnecessaryTypeIgnoreComment = "error"

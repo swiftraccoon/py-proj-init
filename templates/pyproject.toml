@@ -1,0 +1,81 @@
+# Merge into a new src-layout package. Replace the metadata, import package,
+# license, URLs, and Python floor deliberately; generate uv.lock with uv sync.
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "example-project"
+version = "0.1.0"
+description = "Replace with the project's purpose"
+readme = "README.md"
+requires-python = ">=3.14"
+license = "0BSD"
+license-files = ["LICENSE"]
+dependencies = []
+# For a CLI package, use uv add click rich and define a [project.scripts] entry
+# pointing to the package's Click command.
+
+[dependency-groups]
+dev = [
+  "ruff>=0.17.3,<0.18",
+  "mypy>=2.4.1,<3",
+  "pyright>=1.1.0,<2",
+  "pytest>=8.4,<10",
+  "pytest-cov>=7,<8",
+  "twine>=6.2,<7",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/example_project"]
+
+[tool.hatch.build]
+exclude = ["/.python-reference"]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 88
+extend-exclude = [".python-reference"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+# Ruff's formatter owns trailing commas.
+ignore = ["COM812"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+# pytest uses assert; expected numeric values describe test fixtures.
+"tests/**/*.py" = ["S101", "PLR2004"]
+
+[tool.mypy]
+files = ["src", "tests"]
+python_version = "3.14"
+strict = true
+warn_unreachable = true
+disallow_any_unimported = true
+disallow_any_explicit = true
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+
+[tool.pyright]
+include = ["src", "tests"]
+exclude = [".python-reference"]
+pythonVersion = "3.14"
+typeCheckingMode = "strict"
+venvPath = "."
+venv = ".venv"
+reportUnnecessaryTypeIgnoreComment = "error"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--strict-config", "--strict-markers", "--import-mode=importlib"]
+filterwarnings = ["error"]
+
+[tool.coverage.run]
+source = ["example_project"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true

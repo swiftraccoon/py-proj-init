@@ -1,0 +1,14 @@
+/.cache/
+**/__pycache__/
+*.py[cod]
+**/.venv/
+**/.ruff_cache/
+**/.mypy_cache/
+**/.pytest_cache/
+**/.coverage
+**/htmlcov/
+.DS_Store
+Thumbs.db
+desktop.ini
+/references/.reference-sync-*/
+/.reference-maintenance.lock

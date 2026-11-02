@@ -1,0 +1,3 @@
+# Source hashes must survive checkouts with core.autocrlf=true, including
+# upstream trees with their own text=auto attributes.
+references/** -text eol=lf

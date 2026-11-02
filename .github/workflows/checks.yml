@@ -1,0 +1,76 @@
+name: Checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python ${{ matrix.python }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.11", "3.12", "3.13", "3.14", "3.15"]
+        include:
+          - os: macos-latest
+            python: "3.11"
+          - os: macos-latest
+            python: "3.14"
+          - os: windows-latest
+            python: "3.11"
+          - os: windows-latest
+            python: "3.14"
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: "0.8.4"
+      - name: Test maintenance tools offline
+        run: uv run --isolated --project tools/reference-maintenance --python ${{ matrix.python }} --no-dev --locked python -W error -m unittest discover -s tools/reference-maintenance/tests -t tools/reference-maintenance -v
+      - name: Verify snapshot integrity offline
+        run: uv run --python ${{ matrix.python }} --locked tools/reference-maintenance/reference.py sync --check
+      - name: Check local documentation links
+        run: uv run --python ${{ matrix.python }} --locked tools/reference-maintenance/check_docs.py
+
+  quality:
+    name: Formatting, lints, and types
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: "3.14"
+      - name: Install uv
+        uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: "0.8.4"
+      - name: Install locked development tools
+        run: uv sync --project tools/reference-maintenance --locked
+      - name: Check formatting
+        run: uv run --project tools/reference-maintenance --locked ruff format --check tools/reference-maintenance templates/cli_script.py
+      - name: Check lints
+        run: uv run --project tools/reference-maintenance --locked ruff check tools/reference-maintenance templates/cli_script.py
+      - name: Check types
+        run: uv run --project tools/reference-maintenance --locked mypy --config-file tools/reference-maintenance/pyproject.toml tools/reference-maintenance templates/cli_script.py
+      - name: Check types independently
+        run: uv run --project tools/reference-maintenance --locked pyright --project tools/reference-maintenance/pyproject.toml
+      - name: Exercise the standalone CLI template
+        run: uv run --locked templates/cli_script.py --name CI

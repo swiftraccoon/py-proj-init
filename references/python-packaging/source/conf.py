@@ -1,0 +1,297 @@
+# -- Project information ---------------------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+
+import os
+import pathlib
+import sys
+
+from docutils import nodes
+from notfound.utils import replace_uris
+
+_ROOT = pathlib.Path(__file__).resolve().parent.parent
+sys.path.append(os.fspath(_ROOT))
+
+# Some options are only enabled for the main packaging.python.org deployment builds
+RTD_BUILD = bool(os.getenv("READTHEDOCS"))
+RTD_PR_BUILD = RTD_BUILD and os.getenv("READTHEDOCS_VERSION_TYPE") == "external"
+RTD_URL = os.getenv("READTHEDOCS_CANONICAL_URL")
+RTD_CANONICAL_BUILD = (
+    RTD_BUILD and not RTD_PR_BUILD and "packaging.python.org" in RTD_URL
+)
+
+project = "Python Packaging User Guide"
+
+copyright = "2013–2020, PyPA"
+author = "Python Packaging Authority"
+
+# -- General configuration -------------------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
+
+root_doc = "index"
+
+extensions = [
+    "pug_sphinx_extensions",
+    "sphinx.ext.extlinks",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.todo",
+    "sphinx_inline_tabs",
+    "sphinx_copybutton",
+    "sphinx_toolbox.collapse",
+    "sphinx-jsonschema",
+    "notfound.extension",
+    "sphinx_reredirects",
+]
+
+nitpicky = True
+nitpick_ignore = [
+    ("envvar", "PATH"),
+    ("py:func", "find_packages"),
+    ("py:func", "setup"),
+    ("py:func", "importlib.metadata.entry_points"),
+    ("py:class", "importlib.metadata.EntryPoint"),
+    ("py:func", "setuptools.find_namespace_packages"),
+    ("py:func", "setuptools.find_packages"),
+    ("py:func", "setuptools.setup"),
+]
+
+default_role = "any"
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+
+# -- Options for internationalization --------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-internationalization
+
+language = "en"
+
+locale_dirs = ["../locales"]
+
+gettext_auto_build = True
+gettext_compact = "messages"
+gettext_location = True
+
+# -- Options for HTML output -----------------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
+
+html_title = "Python Packaging User Guide"
+html_theme = "furo"
+
+html_theme_options = {
+    "source_edit_link": "https://github.com/pypa/packaging.python.org/edit/main/source/{filename}",
+    "source_view_link": "https://github.com/pypa/packaging.python.org/blob/main/source/{filename}?plain=true",
+}
+
+html_favicon = "assets/py.png"
+html_last_updated_fmt = ""
+
+_metrics_js_files = [
+    (
+        "https://analytics.python.org/js/script.outbound-links.js",
+        {"data-domain": "packaging.python.org", "defer": "defer"},
+    ),
+]
+html_js_files = []
+if RTD_CANONICAL_BUILD:
+    # Enable collection of the visitor metrics reported at
+    # https://plausible.io/packaging.python.org
+    html_js_files.extend(_metrics_js_files)
+
+html_extra_path = [
+    "../extra",
+]
+
+# -- Options for HTML help output ------------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-help-output
+
+htmlhelp_basename = "pythonpackagingguide-authdoc"
+
+# -- Options for LaTeX output ----------------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-latex-output
+
+# pdflatex fails on emoji; xelatex only warns about missing glyphs.
+latex_engine = "xelatex"
+latex_elements = {}
+latex_documents = [
+    (
+        root_doc,
+        "pythonpackagingguide.tex",
+        "Python Packaging User Guide",
+        "Python Packaging Authority",
+        "manual",
+    ),
+]
+
+# -- Options for manual page output ----------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-manual-page-output
+
+man_pages = [
+    (root_doc, "pythonpackagingguide", "Python Packaging User Guide", [author], 1)
+]
+
+# -- Options for Texinfo output --------------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-texinfo-output
+
+texinfo_documents = [
+    (
+        root_doc,
+        "pythonpackagingguide",
+        "Python Packaging User Guide",
+        author,
+        "pythonpackagingguide",
+        "One line description of project.",
+        "Miscellaneous",
+    ),
+]
+
+# -- Options for the linkcheck builder -------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-the-linkcheck-builder
+
+linkcheck_ignore = [
+    r"http://localhost:\d+",
+    r"https://test\.pypi\.org/project/example-package-YOUR-USERNAME-HERE",
+    r"https://pypi\.org/manage/.*",
+    r"https://test\.pypi\.org/manage/.*",
+    # Temporarily ignored. Ref:
+    # https://github.com/pypa/packaging.python.org/pull/1308#issuecomment-1775347690
+    r"https://www\.breezy-vcs\.org/.*",
+    # Ignore while StackOverflow is blocking GitHub CI. Ref:
+    # https://github.com/pypa/packaging.python.org/pull/1474
+    r"https://stackoverflow\.com/.*",
+    # Cloudflare challenge blocks automated link checking.
+    r"https://clickpy\.clickhouse\.com/$",
+    r"https://pyscaffold\.org/.*",
+    r"https://anaconda\.org",
+    r"https://www\.cisa\.gov/sbom",
+    r"https://developers\.redhat\.com/products/softwarecollections/overview",
+    r"https://math-atlas\.sourceforge\.net/?",
+    r"https://click\.palletsprojects\.com/.*",
+    r"https://typer\.tiangolo\.com/.*",
+    r"https://www.npmjs.com/.*",
+    r"https://docutils\.sourceforge\.io/.*",
+    r"https://hosted\.weblate\.org/.*",
+    # Temporarily ignored due to expired TLS cert.
+    # Ref: https://github.com/pypa/packaging.python.org/issues/1998
+    r"https://blog\.ganssle\.io/.*",
+    # Temporarily ignored due to expired TLS cert.
+    r"https://kivy.org/.*",
+    # Archived snapshots don't change, and the Wayback Machine rate-limits CI (429).
+    r"https://web\.archive\.org/.*",
+]
+linkcheck_retries = 2
+linkcheck_timeout = 30
+# Ignore anchors for common targets when we know they likely won't be found
+linkcheck_anchors_ignore_for_url = [
+    # GitHub synthesises anchors in JavaScript, so Sphinx can't find them in the HTML
+    r"https://github\.com/",
+    r"https://docs\.github\.com/",
+    # While PyPI has its botscraping defenses active, Sphinx can't resolve the anchors
+    # https://github.com/pypa/packaging.python.org/issues/1744
+    r"https://pypi\.org/",
+]
+# Authenticate requests to github.com (when a token is available) to avoid
+# unauthenticated rate limits that can stall linkcheck for hours on CI.
+if _gh_token := os.getenv("GITHUB_TOKEN"):
+    linkcheck_request_headers = {
+        "https://github.com/": {"Authorization": f"Bearer {_gh_token}"},
+        "https://api.github.com/": {"Authorization": f"Bearer {_gh_token}"},
+    }
+
+# -- Options for extlinks ----------------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/extensions/extlinks.html#configuration
+
+github_url = "https://github.com"
+github_repo_org = "pypa"
+github_repo_name = "packaging.python.org"
+github_repo_slug = f"{github_repo_org}/{github_repo_name}"
+github_repo_url = f"{github_url}/{github_repo_slug}"
+github_repo_issues_url = f"{github_url}/{github_repo_slug}/issues"
+github_sponsors_url = f"{github_url}/sponsors"
+
+extlinks = {
+    "issue": (f"{github_repo_issues_url}/%s", "#%s"),
+    "pr": (f"{github_repo_url}/pull/%s", "PR #%s"),
+    "commit": (f"{github_repo_url}/commit/%s", "%s"),
+    "gh": (f"{github_url}/%s", "GitHub: %s"),
+    "user": (f"{github_sponsors_url}/%s", "@%s"),
+}
+
+# -- Options for intersphinx ----------------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/extensions/intersphinx.html#configuration
+
+intersphinx_mapping = {
+    "boltons": ("https://boltons.readthedocs.io/en/latest/", None),
+    "bottle": ("https://bottlepy.org/docs/dev/", None),
+    "build": ("https://build.pypa.io/en/stable/", None),
+    "cffi": ("https://cffi.readthedocs.io/en/latest/", None),
+    "conda": ("https://docs.conda.io/en/latest/", None),
+    "devpi": ("https://devpi.net/docs/devpi/devpi/latest/+doc", None),
+    "dh-virtualenv": ("https://dh-virtualenv.readthedocs.io/en/latest/", None),
+    "distlib": ("https://distlib.readthedocs.io/en/latest/", None),
+    "flexx": ("https://flexx.readthedocs.io/en/latest/", None),
+    "flit": ("https://flit.pypa.io/en/stable/", None),
+    "nox": ("https://nox.thea.codes/en/latest/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "openstack": ("https://docs.openstack.org/glance/latest/", None),
+    "packaging": ("https://packaging.pypa.io/en/latest/", None),
+    "pip": ("https://pip.pypa.io/en/latest/", None),
+    "pipenv": ("https://pipenv.pypa.io/en/latest/", None),
+    "piwheels": ("https://piwheels.readthedocs.io/en/latest/", None),
+    "pybind11": ("https://pybind11.readthedocs.io/en/stable/", None),
+    "pynsist": ("https://pynsist.readthedocs.io/en/latest/", None),
+    "pypa": ("https://www.pypa.io/en/latest/", None),
+    "python": ("https://docs.python.org/3", None),
+    "python-guide": ("https://docs.python-guide.org", None),
+    "setuptools": ("https://setuptools.pypa.io/en/latest/", None),
+    "setuptools-scm": ("https://setuptools-scm.readthedocs.io/latest", None),
+    "spack": ("https://spack.readthedocs.io/en/latest/", None),
+    "sphinx": ("https://www.sphinx-doc.org/en/master", None),
+    "tox": ("https://tox.wiki/en/latest/", None),
+    "twine": ("https://twine.readthedocs.io/en/stable/", None),
+    "virtualenv": ("https://virtualenv.pypa.io/en/stable/", None),
+}
+
+# -- Options for todo extension --------------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/extensions/todo.html#configuration
+
+todo_include_todos = True
+
+# -- Options for sphinx-copybutton -----------------------------------------------------
+# https://sphinx-copybutton.readthedocs.io/en/latest/use.html
+
+copybutton_prompt_text = r">>> |\.\.\. |\$ |> "
+copybutton_prompt_is_regexp = True
+
+# -- Options for sphinx-notfound-page --------------------------------------------------
+# https://sphinx-notfound-page.readthedocs.io/en/latest/configuration.html
+
+# Local builds are served from the root, RtD seves from /<language>/<version>/
+if not RTD_BUILD:
+    notfound_urls_prefix = "/"
+
+
+def fix_notfound_links(app, doctree, docname):
+    # The extension only makes theme links absolute, not links in the page body
+    if app.builder.format == "html" and docname == app.config.notfound_pagename:
+        replace_uris(app, doctree, nodes.reference, "refuri")
+
+
+# -- Options for sphinx-reredirects ----------------------------------------------------
+# https://documatt.com/sphinx-reredirects/usage/
+
+redirects = {
+    "guides/using-manifest-in": "https://setuptools.pypa.io/en/latest/userguide/miscellaneous.html",
+    "tutorials/creating-documentation": "https://www.sphinx-doc.org/en/master/tutorial/",
+}
+
+# Internal redirects, made relative for the current builder (html or dirhtml)
+internal_redirects = {
+    "guides/single-sourcing-package-version": "discussions/single-source-version",
+}
+
+
+def add_internal_redirects(app):
+    for source, target in internal_redirects.items():
+        app.config.redirects[source] = app.builder.get_relative_uri(source, target)
+
+
+def setup(app):
+    app.connect("builder-inited", add_internal_redirects)
+    app.connect("doctree-resolved", fix_notfound_links)
